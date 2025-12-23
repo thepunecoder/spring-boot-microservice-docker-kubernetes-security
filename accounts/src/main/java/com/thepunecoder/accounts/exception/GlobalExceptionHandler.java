@@ -50,3 +50,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponseDto,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
+
+/*
+What is @ControllerAdvice in Spring Boot?
+@ControllerAdvice is a specialization of the @Component annotation in Spring Boot that allows you to handle exceptions globally across all controllers.
+It is used to define a centralized exception handling mechanism, enabling you to write code that can intercept and process exceptions thrown by any controller in the application.
+@ExceptionHandler is used within a @ControllerAdvice class to specify methods that handle specific exceptions.
+
+What are the benefits of using @ControllerAdvice for exception handling?
+Using @ControllerAdvice for exception handling provides several benefits:
+1. Centralized Exception Handling: It allows you to manage all exception handling logic in one place, making the code cleaner and easier to maintain.
+2. Reusability: You can define common exception handling logic that can be reused across multiple controllers.
+3. Consistent Responses: It helps ensure that error responses are consistent throughout the application.
+4. Separation of Concerns: It separates exception handling logic from business logic, improving code organization and readability.
+
+@ControllerAdvice used for exception handling only ?
+@ControllerAdvice is primarily used for exception handling in Spring Boot applications. However, it can also be used for other cross-cutting concerns such as:
+1. Model Attribute Binding: You can use @ModelAttribute methods within a @ControllerAdvice class to add common attributes to the model for all controllers.
+2. Data Binding: You can define @InitBinder methods to customize data binding for all controllers.
+3. Global Configuration: It can be used to apply global configurations that affect multiple controllers.
+
+*/
