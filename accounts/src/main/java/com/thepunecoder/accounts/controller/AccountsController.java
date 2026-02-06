@@ -2,12 +2,22 @@ package com.thepunecoder.accounts.controller;
 
 import com.thepunecoder.accounts.constants.AccountsConstants;
 import com.thepunecoder.accounts.dto.CustomerDto;
+import com.thepunecoder.accounts.dto.ErrorResponseDto;
 import com.thepunecoder.accounts.dto.ResponseDto;
 import com.thepunecoder.accounts.service.IAccountsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -15,22 +25,48 @@ import org.springframework.web.bind.annotation.*;
  * It provides endpoints for creating, fetching, updating, and deleting customer account details.
 **/
 
+@Tag(
+        name = "CRUD REST APIs for Accounts",
+        description = "CRUD REST APIs to CREATE, UPDATE, FETCH AND DELETE account details"
+)
 @RestController
 @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
 @AllArgsConstructor
+@Validated
 public class AccountsController {
 
     private IAccountsService iAccountsService;
 
+    @Operation(
+            summary = "Create Account REST API",
+            description = "REST API to create new Customer &  Account"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "HTTP Status CREATED"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createAccount(@RequestBody CustomerDto customerDto) {
+    public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CustomerDto customerDto) {
         iAccountsService.createAccount(customerDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new ResponseDto(AccountsConstants.STATUS_201, AccountsConstants.MESSAGE_201));
     }
 
-    //write code for send hello endpoint which returns "Hello from Accounts Service"
+    @Operation(
+            summary = "Test REST API",
+            description = "This is to test spring boot app if it is working"
+    )
     @GetMapping("/hello")
     public ResponseEntity<String> hello() {
         return ResponseEntity
@@ -38,14 +74,56 @@ public class AccountsController {
                 .body("Hello from Accounts Service");
     }
 
+    @Operation(
+            summary = "Fetch Account Details REST API",
+            description = "REST API to fetch Customer &  Account details based on a mobile number"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
     @GetMapping("/fetchAccountDetails")
-    public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam String mobileNumber){
+    public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam
+                                                               @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number must be 10 digit")
+                                                               String mobileNumber){
         CustomerDto customerDto = iAccountsService.fetchAccount(mobileNumber);
         return ResponseEntity.status(HttpStatus.OK).body(customerDto);
     }
 
+    @Operation(
+            summary = "Update Account Details REST API",
+            description = "REST API to update Customer &  Account details based on a account number"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "417",
+                    description = "Expectation Failed"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
     @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateAccountDetails(@RequestBody CustomerDto customerDto) {
+    public ResponseEntity<ResponseDto> updateAccountDetails(@Valid @RequestBody CustomerDto customerDto) {
         boolean isUpdated = iAccountsService.updateAccount(customerDto);
         if (isUpdated) {
             return ResponseEntity
@@ -54,12 +132,36 @@ public class AccountsController {
         } else {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseDto(AccountsConstants.STATUS_500, AccountsConstants.MESSAGE_500));
+                    .body(new ResponseDto(AccountsConstants.STATUS_417, AccountsConstants.MESSAGE_417_UPDATE));
         }
     }
 
+    @Operation(
+            summary = "Delete Account & Customer Details REST API",
+            description = "REST API to delete Customer &  Account details based on a mobile number"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "417",
+                    description = "Expectation Failed"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
     @DeleteMapping("/delete")
-    public ResponseEntity<ResponseDto> deleteAccountDetails(@RequestParam String mobileNumber) {
+    public ResponseEntity<ResponseDto> deleteAccountDetails(@RequestParam
+                                                                @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile number must be 10 digit")
+                                                                String mobileNumber) {
         boolean isDeleted = iAccountsService.deleteAccount(mobileNumber);
         if (isDeleted) {
             return ResponseEntity
@@ -68,7 +170,7 @@ public class AccountsController {
         } else {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseDto(AccountsConstants.STATUS_500, AccountsConstants.MESSAGE_500));
+                    .body(new ResponseDto(AccountsConstants.STATUS_417, AccountsConstants.MESSAGE_417_DELETE));
         }
     }
 }
@@ -82,6 +184,15 @@ What is the use of ResponseEntity in spring boot?
 ResponseEntity is a class in Spring Boot that represents the entire HTTP response, including the status code, headers, and body.
 It is used to provide more control over the HTTP response returned from a RESTful web service.
 By using ResponseEntity, developers can customize the response status, add headers, and include a response body, making it easier to handle different scenarios such as success, errors, and redirects in a more flexible manner.
+
+//What are different types of status codes in REST API?
+Different types of status codes in REST API are categorized into five classes based on the first digit of the code:
+1xx (Informational): Indicates that the request has been received and is being processed (e.g., 100 Continue).
+2xx (Success): Indicates that the request was successfully processed (e.g., 200 OK, 201 Created).
+3xx (Redirection): Indicates that further action is needed to complete the request (e.g., 301 Moved Permanently, 302 Found).
+4xx (Client Error): Indicates that there was an error with the request made by the client (e.g., 400 Bad Request, 401 Unauthorized, 404 Not Found).
+5xx (Server Error): Indicates that the server encountered an error while processing the request (e.g., 500 Internal Server Error, 503 Service Unavailable).
+
 
 What is the use of @RequestBody in spring boot?
 @RequestBody is an annotation in Spring Boot that is used to bind the HTTP request body to a method parameter in a controller.
